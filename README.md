@@ -2,9 +2,10 @@
 
 ## Prerequisites
 
-* arduino yun
-* rabpeberry pi
-* python
+* Arduino Yun
+* Raspberry Pi
+* Python
+* NodeJS
 
 ## Install and configuration
 
