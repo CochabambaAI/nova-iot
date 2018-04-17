@@ -1,11 +1,11 @@
-# NOVA IOT
+# NOVA IoT
 
-## Prerequisites
+## Dependencies
 
-* Arduino Yun
 * Raspberry Pi
 * Python
+* Android
 * NodeJS
 
-## Install and configuration
-
+## Schematic
+[[https://github.com/CochabambaAI/nova-iot/blob/master/raspberrypi/schematics/raspi_bulb_bb.png]]
