@@ -4,13 +4,17 @@ package com.lopez.richard.nova_v6_en2;
  * Created by Richard on 31-March-2018
  */
 
+import android.content.Context;
 import android.content.Intent;
 import android.media.AudioFormat;
+import android.media.AudioManager;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Message;
 import android.os.StrictMode;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -42,6 +46,9 @@ import com.ibm.watson.developer_cloud.tone_analyzer.v3.ToneAnalyzer;
 import com.ibm.watson.developer_cloud.tone_analyzer.v3.model.ToneAnalysis;
 import com.ibm.watson.developer_cloud.tone_analyzer.v3.model.ToneCategory;
 import com.ibm.watson.developer_cloud.tone_analyzer.v3.model.ToneScore;
+import com.lopez.richard.nova_v6_en2.snowboy.AudioDataSaver;
+import com.lopez.richard.nova_v6_en2.snowboy.MsgEnum;
+import com.lopez.richard.nova_v6_en2.snowboy.RecordingThread;
 
 import java.io.*;
 import java.util.HashMap;
@@ -59,6 +66,9 @@ public class MainActivity extends AppCompatActivity {
     TextView tv_consola;
     File filePath;
     LightService service;
+    RecordingThread recordingSnowBoyThread;
+    private static long activeTimes = 0;
+    private int preVolume = -1;
 
     private static final String APP_TAG_VS_STT = "NOVA-STT";
     private static final String APP_TAG_NOVABOT = "NOVA-BOT: ";
@@ -159,6 +169,9 @@ public class MainActivity extends AppCompatActivity {
 
         tv_consola = findViewById(R.id.consolatxt);
         service = RetrofitInstance.getRetrofitInstance().create(LightService.class);
+        setProperVolume();
+        recordingSnowBoyThread = new RecordingThread(handle, new AudioDataSaver());
+        recordingSnowBoyThread.startRecording();
     }
 
     public void conversorSTT() {
@@ -197,20 +210,21 @@ public class MainActivity extends AppCompatActivity {
             response = service.setLightOff();
         }
 
-        if(response != null)
+        if(response != null) {
             Log.i("REST_CLIENT", "URL requested: " + response.request().url());
 
-        response.enqueue(new Callback<String>() {
-            @Override
-            public void onResponse(Call<String> call, Response<String> response) {
-                Log.i("REST_CLIENT", "REST server response: " + response.body());
-            }
+            response.enqueue(new Callback<String>() {
+                @Override
+                public void onResponse(Call<String> call, Response<String> response) {
+                    Log.i("REST_CLIENT", "REST server response: " + response.body());
+                }
 
-            @Override
-            public void onFailure(Call<String> call, Throwable t) {
-                Log.i("REST_CLIENT", "REST client/server error: " + t.getMessage());
-            }
-        });
+                @Override
+                public void onFailure(Call<String> call, Throwable t) {
+                    Log.i("REST_CLIENT", "REST client/server error: " + t.getMessage());
+                }
+            });
+        }
 
 
         tv_consola.setText("Received: " + texto);
@@ -880,6 +894,61 @@ public class MainActivity extends AppCompatActivity {
         header[43] = (byte) ((totalAudioLen >> 24) & 0xff);
 
         out.write(header, 0, 44);
+    }
+    public Handler handle = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            MsgEnum message = MsgEnum.getMsgEnum(msg.what);
+            switch(message) {
+                case MSG_ACTIVE:
+                    activeTimes++;
+                    Log.d("SNOWBOY", " ----> Detected " + activeTimes + " times");
+                    // Toast.makeText(Demo.this, "Active "+activeTimes, Toast.LENGTH_SHORT).show();
+                    break;
+                case MSG_INFO:
+                    Log.d("SNOWBOY"," ----> "+message);
+                    break;
+                case MSG_VAD_SPEECH:
+                    Log.d("SNOWBOY"," ----> normal voice");
+                    break;
+                case MSG_VAD_NOSPEECH:
+                    Log.d("SNOWBOY"," ----> no speech");
+                    break;
+                case MSG_ERROR:
+                    Log.d("SNOWBOY"," ----> " + msg.toString());
+                    break;
+                default:
+                    super.handleMessage(msg);
+                    break;
+            }
+        }
+    };
+    @Override
+    public void onDestroy() {
+        restoreVolume();
+        recordingSnowBoyThread.stopRecording();
+        super.onDestroy();
+    }
+    private void setProperVolume() {
+        AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        preVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+        Log.d("SNOWBOY", " ----> preVolume = "+preVolume);
+        int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+        Log.d("SNOWBOY", " ----> maxVolume = "+maxVolume);
+        int properVolume = (int) ((float) maxVolume * 0.2);
+        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, properVolume, 0);
+        int currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+        Log.d("SNOWBOY", " ----> currentVolume = "+currentVolume);
+    }
+
+    private void restoreVolume() {
+        if(preVolume>=0) {
+            AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, preVolume, 0);
+            Log.d("SNOWBOY", " ----> set preVolume = "+preVolume);
+            int currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+            Log.d("SNOWBOY", " ----> currentVolume = "+currentVolume);
+        }
     }
 
 }
