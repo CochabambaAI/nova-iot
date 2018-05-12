@@ -46,6 +46,7 @@ import com.ibm.watson.developer_cloud.tone_analyzer.v3.ToneAnalyzer;
 import com.ibm.watson.developer_cloud.tone_analyzer.v3.model.ToneAnalysis;
 import com.ibm.watson.developer_cloud.tone_analyzer.v3.model.ToneCategory;
 import com.ibm.watson.developer_cloud.tone_analyzer.v3.model.ToneScore;
+import com.lopez.richard.nova_v6_en2.snowboy.AppResCopy;
 import com.lopez.richard.nova_v6_en2.snowboy.AudioDataSaver;
 import com.lopez.richard.nova_v6_en2.snowboy.MsgEnum;
 import com.lopez.richard.nova_v6_en2.snowboy.RecordingThread;
@@ -169,6 +170,7 @@ public class MainActivity extends AppCompatActivity {
 
         tv_consola = findViewById(R.id.consolatxt);
         service = RetrofitInstance.getRetrofitInstance().create(LightService.class);
+        AppResCopy.copyResFromAssetsToSD(this);
         setProperVolume();
         recordingSnowBoyThread = new RecordingThread(handle, new AudioDataSaver());
         recordingSnowBoyThread.startRecording();
