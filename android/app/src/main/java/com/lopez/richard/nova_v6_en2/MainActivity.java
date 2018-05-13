@@ -12,6 +12,7 @@ import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.CountDownTimer;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
@@ -23,6 +24,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.ibm.watson.developer_cloud.conversation.v1.model.InputData;
 import com.ibm.watson.developer_cloud.conversation.v1.model.MessageOptions;
@@ -161,6 +163,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(APP_TAG_NOVA_RECORD, "STOP Grabación");
                 enableButtons(false);
                 stopRecording();
+                recordingSnowBoyThread.startRecording();
 
                 // LLAMOS AL METODO QUE ACCEDE A LA GRABACIOM Y QUE LUEGO ENVIA A WATSON
                 conversorSTT();
@@ -614,8 +617,15 @@ public class MainActivity extends AppCompatActivity {
                             } else {
                             */
                             //executeWatsonTTS(outputmessage);
+
+                            restoreVolume();
                             hablaWatsonTTS(outputmessage);
                             Log.d(APP_TAG_NOVABOT, "Despues de executeWatson ");
+
+                            //llevar donde termina de responder el asistente
+                            setProperVolume();
+                            recordingSnowBoyThread.startRecording();
+                            //-------
                             //}
                         }
                     }
@@ -906,6 +916,22 @@ public class MainActivity extends AppCompatActivity {
                     activeTimes++;
                     Log.d("SNOWBOY", " ----> Detected " + activeTimes + " times");
                     // Toast.makeText(Demo.this, "Active "+activeTimes, Toast.LENGTH_SHORT).show();
+                    Log.d(APP_TAG_NOVA_RECORD, "START Grabación");
+                    enableButtons(true);
+                    recordingSnowBoyThread.stopRecording();
+                    startRecording();
+                    restoreVolume();
+                    new CountDownTimer(6000, 1000){
+                        public void onTick(long millisUntilFinished) {
+                            Log.d("SNOWBOY","seconds remaining: " + millisUntilFinished / 1000);
+                        }
+                        public void onFinish(){
+                            stopRecording();
+                            Log.d("SNOWBOY"," ----> stopping watson recording");
+                            conversorSTT();
+                            enableButtons(false);
+                        }
+                    }.start();
                     break;
                 case MSG_INFO:
                     Log.d("SNOWBOY"," ----> "+message);

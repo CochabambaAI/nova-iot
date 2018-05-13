@@ -36,7 +36,7 @@ public class RecordingThread {
         this.handler = handler;
         this.listener = listener;
 
-        detector.SetSensitivity("0.6");
+        detector.SetSensitivity("0.5");
         detector.SetAudioGain(1);
         detector.ApplyFrontend(true);
         try {
