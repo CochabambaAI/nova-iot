@@ -680,24 +680,35 @@ public class MainActivity extends AppCompatActivity {
 
     private void checkCorrectEnpoint(String x){
 
+        Call<String> response = null;
+        //response = service.setLightOn();
+        //response = service.setLightOff();
+
+
+
         switch (x){
             //SALA ON
             case "Encendiendo luces de la Sala":
                 Log.d("*** IOT ***", "======== ENCENDER SALA ===========");
+                response = service.setLightOn();
                 break;
             case "De inmediato, ya esta, luces encendidas":
                 Log.d("*** IOT ***", "======== ENCENDER SALA ===========");
+                response = service.setLightOn();
                 break;
             case "Que se haga la Luz":
                 Log.d("*** IOT ***", "======== ENCENDER SALA ===========");
+                response = service.setLightOn();
                 break;
 
             //SALA OFF
             case "Apagando luces de la sala":
                 Log.d("*** IOT ***", "======== APAGAR SALA ===========");
+                response = service.setLightOff();
                 break;
             case "chao luces de la sala":
                 Log.d("*** IOT ***", "======== APAGAR SALA ===========");
+                response = service.setLightOff();
                 break;
 
             //COCINA ON
