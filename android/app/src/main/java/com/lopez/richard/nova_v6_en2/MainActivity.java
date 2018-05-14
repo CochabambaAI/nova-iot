@@ -667,9 +667,61 @@ public class MainActivity extends AppCompatActivity {
 
             Log.d(APP_TAG_NOVABOT, "======== 3");
 
+            // TODO: Ver a que endpoint corresponde la respuesta
+            checkCorrectEnpoint(textoParaHablar);
+
+
         }
         catch (Exception e) {
             e.printStackTrace();
+        }
+
+    }
+
+    private void checkCorrectEnpoint(String x){
+
+        switch (x){
+            //SALA ON
+            case "Encendiendo luces de la Sala":
+                Log.d("*** IOT ***", "======== ENCENDER SALA ===========");
+                break;
+            case "De inmediato, ya esta, luces encendidas":
+                Log.d("*** IOT ***", "======== ENCENDER SALA ===========");
+                break;
+            case "Que se haga la Luz":
+                Log.d("*** IOT ***", "======== ENCENDER SALA ===========");
+                break;
+
+            //SALA OFF
+            case "Apagando luces de la sala":
+                Log.d("*** IOT ***", "======== APAGAR SALA ===========");
+                break;
+            case "chao luces de la sala":
+                Log.d("*** IOT ***", "======== APAGAR SALA ===========");
+                break;
+
+            //COCINA ON
+            case "Claro que si jefazo, encendiendo luces de la cocina":
+                Log.d("*** IOT ***", "======== ENCENDER COCINA ===========");
+                break;
+            case "De una, luces de la cocina todas encendidas":
+                Log.d("*** IOT ***", "======== ENCENDER COCINA ===========");
+                break;
+            case "":
+                Log.d("*** IOT ***", "======== ENCENDER COCINA ===========");
+                break;
+
+            //COCINA OFF
+            case "Apagando luces de la cocina":
+                Log.d("*** IOT ***", "======== APAGAR COCINA ===========");
+                break;
+            case "Las luces de la cocina han sido apagadas":
+                Log.d("*** IOT ***", "======== APAGAR COCINA ===========");
+                break;
+
+            default:
+                break;
+
         }
 
     }
