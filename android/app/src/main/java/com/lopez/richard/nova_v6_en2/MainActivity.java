@@ -205,31 +205,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public synchronized void actualizarConsola() {
+        /*
         String texto = leemosArchitoDeTexto(ARCHIVO_MENSAJE_TXT);
         Pattern encender = Pattern.compile("encender");
         Pattern apagar = Pattern.compile("apagar");
-        Call<String> response = null;
         if(encender.matcher(texto).find()){
-            response = service.setLightOn();
+            //response = service.setLightOn();
         } else if(apagar.matcher(texto).find()){
-            response = service.setLightOff();
+            //response = service.setLightOff();
         }
-
-        if(response != null) {
-            Log.i("REST_CLIENT", "URL requested: " + response.request().url());
-
-            response.enqueue(new Callback<String>() {
-                @Override
-                public void onResponse(Call<String> call, Response<String> response) {
-                    Log.i("REST_CLIENT", "REST server response: " + response.body());
-                }
-
-                @Override
-                public void onFailure(Call<String> call, Throwable t) {
-                    Log.i("REST_CLIENT", "REST client/server error: " + t.getMessage());
-                }
-            });
-        }
+        */
 
 
         tv_consola.setText("Received: " + texto);
@@ -679,49 +664,60 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void checkCorrectEnpoint(String x){
+        final int SALA = 1;
+        final int COCINA = 2;
+
+        Call<String> response = null;
 
         switch (x){
             //SALA ON
             case "Encendiendo luces de la Sala":
-                Log.d("*** IOT ***", "======== ENCENDER SALA ===========");
-                break;
             case "De inmediato, ya esta, luces encendidas":
-                Log.d("*** IOT ***", "======== ENCENDER SALA ===========");
-                break;
             case "Que se haga la Luz":
                 Log.d("*** IOT ***", "======== ENCENDER SALA ===========");
+                response = service.setLightOn(SALA);
                 break;
 
             //SALA OFF
             case "Apagando luces de la sala":
-                Log.d("*** IOT ***", "======== APAGAR SALA ===========");
-                break;
             case "chao luces de la sala":
                 Log.d("*** IOT ***", "======== APAGAR SALA ===========");
+                response = service.setLightOff(SALA);
                 break;
 
             //COCINA ON
             case "Claro que si jefazo, encendiendo luces de la cocina":
-                Log.d("*** IOT ***", "======== ENCENDER COCINA ===========");
-                break;
             case "De una, luces de la cocina todas encendidas":
-                Log.d("*** IOT ***", "======== ENCENDER COCINA ===========");
-                break;
             case "":
                 Log.d("*** IOT ***", "======== ENCENDER COCINA ===========");
+                response = service.setLightOn(COCINA);
                 break;
 
             //COCINA OFF
             case "Apagando luces de la cocina":
-                Log.d("*** IOT ***", "======== APAGAR COCINA ===========");
-                break;
             case "Las luces de la cocina han sido apagadas":
                 Log.d("*** IOT ***", "======== APAGAR COCINA ===========");
+                response = service.setLightOff(COCINA);
                 break;
 
             default:
                 break;
+        }
 
+        if(response != null) {
+            Log.i("REST_CLIENT", "URL requested: " + response.request().url());
+
+            response.enqueue(new Callback<String>() {
+                @Override
+                public void onResponse(Call<String> call, Response<String> response) {
+                    Log.i("REST_CLIENT", "REST server response: " + response.body());
+                }
+
+                @Override
+                public void onFailure(Call<String> call, Throwable t) {
+                    Log.i("REST_CLIENT", "REST client/server error: " + t.getMessage());
+                }
+            });
         }
 
     }
