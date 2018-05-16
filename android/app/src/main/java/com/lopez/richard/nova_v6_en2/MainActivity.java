@@ -4,14 +4,17 @@ package com.lopez.richard.nova_v6_en2;
  * Created by Richard on 31-March-2018
  */
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.CountDownTimer;
 import android.os.Environment;
 import android.os.Handler;
@@ -54,6 +57,7 @@ import com.lopez.richard.nova_v6_en2.snowboy.MsgEnum;
 import com.lopez.richard.nova_v6_en2.snowboy.RecordingThread;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -136,6 +140,7 @@ public class MainActivity extends AppCompatActivity {
     //final String username_TA = "xxxxxxxxxxx";
     //final String password_TA = "yyyyyyyyyyy";
 
+    SpeechToTextG speechToTextG;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -166,7 +171,7 @@ public class MainActivity extends AppCompatActivity {
                 recordingSnowBoyThread.startRecording();
 
                 // LLAMOS AL METODO QUE ACCEDE A LA GRABACIOM Y QUE LUEGO ENVIA A WATSON
-                conversorSTT();
+                //conversorSTT2();
             }
         });
         // FIN BLOQUE GRABACION
@@ -177,8 +182,52 @@ public class MainActivity extends AppCompatActivity {
         setProperVolume();
         recordingSnowBoyThread = new RecordingThread(handle, new AudioDataSaver());
         recordingSnowBoyThread.startRecording();
+        requestRecordAudioPermission();
+        createSpeechToTextG();
     }
 
+    private void createSpeechToTextG(){
+        speechToTextG = new SpeechToTextG(getApplicationContext());
+
+        speechToTextG.setResultListener(new SpeechToTextG.ResultListener() {
+            @Override
+            public void onResult(ArrayList<String> result) {
+                if(result.size() > 0) {
+                    crearArchivoTxt222(ARCHIVO_MENSAJE_TXT, result.get(0));
+
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            actualizarConsola();
+                        }
+                    });
+                    sendMessageToWatsonBot(result.get(0));
+                }else{
+                    recordingSnowBoyThread.startRecording();
+                }
+                enableButtons(false);
+            }
+            @Override
+            public void onError(int error){
+                enableButtons(false);
+                recordingSnowBoyThread.startRecording();
+            }
+        });
+    }
+    private void requestRecordAudioPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            String requiredPermission = Manifest.permission.RECORD_AUDIO;
+
+            // If the user previously denied this permission then show a message explaining why
+            // this permission is needed
+            if (checkCallingOrSelfPermission(requiredPermission) == PackageManager.PERMISSION_DENIED) {
+                requestPermissions(new String[]{requiredPermission}, 101);
+            }
+        }
+    }
+    public void conversorSTT2() {
+        speechToTextG.recognize();
+    }
     public void conversorSTT() {
         filePath = new File(Environment.getExternalStorageDirectory()
                 + File.separator
@@ -640,6 +689,7 @@ public class MainActivity extends AppCompatActivity {
      * TTS
      */
     private void hablaWatsonTTS(String textoParaHablar){
+        checkCorrectEnpoint(textoParaHablar);
         TextToSpeech service = new TextToSpeech();
         service.setUsernameAndPassword(TTS_SERVICE_USERNAME, TTS_SERVICE_PASSWORD);
 
@@ -653,7 +703,6 @@ public class MainActivity extends AppCompatActivity {
             Log.d(APP_TAG_NOVABOT, "======== 3");
 
             // TODO: Ver a que endpoint corresponde la respuesta
-            checkCorrectEnpoint(textoParaHablar);
 
 
         }
@@ -967,6 +1016,8 @@ public class MainActivity extends AppCompatActivity {
                     Log.d(APP_TAG_NOVA_RECORD, "START Grabación");
                     enableButtons(true);
                     recordingSnowBoyThread.stopRecording();
+                    speechToTextG.recognize();
+                    /*
                     startRecording();
                     restoreVolume();
                     new CountDownTimer(6000, 1000){
@@ -976,10 +1027,11 @@ public class MainActivity extends AppCompatActivity {
                         public void onFinish(){
                             stopRecording();
                             Log.d("SNOWBOY"," ----> stopping watson recording");
-                            conversorSTT();
+                            //conversorSTT();
+                            conversorSTT2();
                             enableButtons(false);
                         }
-                    }.start();
+                    }.start();*/
                     break;
                 case MSG_INFO:
                     Log.d("SNOWBOY"," ----> "+message);
