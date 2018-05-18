@@ -26,6 +26,7 @@ import android.text.Html;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -179,14 +180,33 @@ public class MainActivity extends AppCompatActivity {
         // FIN BLOQUE GRABACION
 
         tv_consola = findViewById(R.id.consolatxt);
-        service = RetrofitInstance.getRetrofitInstance().create(LightService.class);
+        createRESTClient();
         AppResCopy.copyResFromAssetsToSD(this);
         setProperVolume();
         recordingSnowBoyThread = new RecordingThread(handle, new AudioDataSaver());
         recordingSnowBoyThread.startRecording();
         requestRecordAudioPermission();
         createSpeechToTextG();
-        novaLogo = (ImageView) findViewById(R.id.imageView);
+        novaLogo = findViewById(R.id.imageView);
+        setServerButton();
+    }
+
+    private void setServerButton(){
+        Button button = findViewById(R.id.button);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                createRESTClient();
+            }
+        });
+    }
+
+    private void createRESTClient(){
+        EditText editText = findViewById(R.id.editText);
+
+        String BASE_URL = "http://" + editText.getText() + ":3000/";
+        service = RetrofitInstance.getRetrofitInstance(BASE_URL).create(LightService.class);
+        tv_consola.setText("Updated with server: " + BASE_URL);
     }
 
     private void createSpeechToTextG(){
