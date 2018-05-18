@@ -26,6 +26,7 @@ import android.text.Html;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -141,6 +142,7 @@ public class MainActivity extends AppCompatActivity {
     //final String password_TA = "yyyyyyyyyyy";
 
     SpeechToTextG speechToTextG;
+    ImageView novaLogo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -184,6 +186,7 @@ public class MainActivity extends AppCompatActivity {
         recordingSnowBoyThread.startRecording();
         requestRecordAudioPermission();
         createSpeechToTextG();
+        novaLogo = (ImageView) findViewById(R.id.imageView);
     }
 
     private void createSpeechToTextG(){
@@ -194,15 +197,10 @@ public class MainActivity extends AppCompatActivity {
             public void onResult(ArrayList<String> result) {
                 if(result.size() > 0) {
                     crearArchivoTxt222(ARCHIVO_MENSAJE_TXT, result.get(0));
-
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            actualizarConsola();
-                        }
-                    });
+                    tv_consola.setText("Received: " + result.get(0));
                     sendMessageToWatsonBot(result.get(0));
                 }else{
+                    novaLogo.setImageResource(R.drawable.eva2);
                     recordingSnowBoyThread.startRecording();
                 }
                 enableButtons(false);
@@ -210,6 +208,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onError(int error){
                 enableButtons(false);
+                novaLogo.setImageResource(R.drawable.eva2);
                 recordingSnowBoyThread.startRecording();
             }
         });
@@ -652,13 +651,20 @@ public class MainActivity extends AppCompatActivity {
                             */
                             //executeWatsonTTS(outputmessage);
 
-                            restoreVolume();
+                            setMaxVolume();
                             hablaWatsonTTS(outputmessage);
                             Log.d(APP_TAG_NOVABOT, "Despues de executeWatson ");
 
                             //llevar donde termina de responder el asistente
                             setProperVolume();
                             recordingSnowBoyThread.startRecording();
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    // Stuff that updates the UI
+                                    novaLogo.setImageResource(R.drawable.eva2);
+                                }
+                            });
                             //-------
                             //}
                         }
@@ -1016,22 +1022,8 @@ public class MainActivity extends AppCompatActivity {
                     Log.d(APP_TAG_NOVA_RECORD, "START Grabación");
                     enableButtons(true);
                     recordingSnowBoyThread.stopRecording();
+                    novaLogo.setImageResource(R.drawable.eva_red_eyes);
                     speechToTextG.recognize();
-                    /*
-                    startRecording();
-                    restoreVolume();
-                    new CountDownTimer(6000, 1000){
-                        public void onTick(long millisUntilFinished) {
-                            Log.d("SNOWBOY","seconds remaining: " + millisUntilFinished / 1000);
-                        }
-                        public void onFinish(){
-                            stopRecording();
-                            Log.d("SNOWBOY"," ----> stopping watson recording");
-                            //conversorSTT();
-                            conversorSTT2();
-                            enableButtons(false);
-                        }
-                    }.start();*/
                     break;
                 case MSG_INFO:
                     Log.d("SNOWBOY"," ----> "+message);
@@ -1079,4 +1071,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void setMaxVolume() {
+        AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, maxVolume, 0);
+    }
 }
